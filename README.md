@@ -20,12 +20,12 @@ To install the package you can use `pip` after cloning. It is recommended to use
 - Data stored in numpy array of dimention N x L where N in the number of data, and L is the length of data
 - Data must be precleaned such that no data is fully empty and L = longest data ie no columns or rows with full NaNs, all data must span >0.5L
 
-Compute PC components, coefficients and eigenvalues with do_gappyfpca(data,var_rat,max_iter=25,num_iter=10,iparallel=0)
-	data - numpy array of dimension N x L
-	var_rat - desired explained variance by returned components
-	max_iter - maximum iterations
-	num_iter - number of iterations convergence criteria must be satisfied for
-	iparallel - flag to run in parallel with multiprocessing
+- Compute PC components, coefficients and eigenvalues with do_gappyfpca(data,var_rat,max_iter=25,num_iter=10,iparallel=0)
+	- data - numpy array of dimension N x L
+	- var_rat - desired explained variance by returned components
+	- max_iter - maximum iterations
+	- num_iter - number of iterations convergence criteria must be satisfied for
+	- iparallel - flag to run in parallel with multiprocessing
 
  ## Citation
 
