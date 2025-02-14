@@ -27,9 +27,9 @@ Compute PC components, coefficients and eigenvalues with do_gappyfpca(data,var_r
 
  ## Citation
 
- @article{hodgkin2025probabilistic,
-  title={Probabilistic Simulation of Aircraft Descent via a Hybrid Physics-Data Approach},
-  author={Hodgkin, Amy and Pepper, Nick and Thomas, Marc},
-  journal={TBC},
-  year={2025}
-}
+	 @article{hodgkin2025probabilistic,
+	  title={Probabilistic Simulation of Aircraft Descent via a Hybrid Physics-Data Approach},
+	  author={Hodgkin, Amy and Pepper, Nick and Thomas, Marc},
+	  journal={TBC},
+	  year={2025}
+	}
