@@ -6,9 +6,11 @@ The method is iterated with reconstructed data until convergence criteria is met
 
 ## Installation
 
-	`git clone`
-	`cd gappyfpca`
-	`pip install .`
+To install the package you can use `pip` after cloning. It is recommended to use a virtual environment to avoid conflicts.
+
+	git clone
+	cd gappyfpca
+	pip install .
 
 ## Getting Started
 
@@ -25,4 +27,9 @@ Compute PC components, coefficients and eigenvalues with do_gappyfpca(data,var_r
 
  ## Citation
 
- 
+ @article{hodgkin2025probabilistic,
+  title={Probabilistic Simulation of Aircraft Descent via a Hybrid Physics-Data Approach},
+  author={Hodgkin, Amy and Pepper, Nick and Thomas, Marc},
+  journal={TBC},
+  year={2025}
+}
