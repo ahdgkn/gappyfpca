@@ -1,0 +1,67 @@
+[build-system]
+requires = ["setuptools"]  # the build tool to use
+build-backend = "setuptools.build_meta"  # the function to use to build the package
+
+[project]
+name = "gappyfpca"
+description = "A simple package for PCA of gappy functions"
+version = "0.0.1"
+
+requires-python=">=3.0"
+dependencies = ["numpy~=1.26.0",
+            "scipy~=1.14.0",
+            "notebook==7.2.2",
+            "matplotlib==3.9.2",
+            "scikit-learn",
+            "pytest"]
+
+[tool.ruff]
+extend-exclude = ["*.ipynb", "tests/*"]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+ignore = [
+  "F821", # Undefined name
+  "B019", # Use of `functools.lru_cache` or `functools.cache` on methods can lead to memory leaks
+  "PD901", # Avoid using the generic variable name `df` for DataFrames
+  "ISC001", # clashes with formatter
+  "ANN101", # Missing type annotation for `self`
+  "RUF100", # Unused `noqa` directive. (Does not work for multiple on one line)
+]
+select = [
+  "E", # pycodestyle
+  "F", # Pyflakes
+  "I", # isort
+  "UP", # pyupgrade
+  "B", # flake8-bugbear
+  "SIM", # flake8-simplify
+  "PD", # pandas-vet
+  "W", # pycodestyle
+  "ANN", # flake8-annotations
+  "ASYNC", #flake8-async
+  "A", # flake8-builtins
+  "C4", # flake8-comprehensions
+  "ISC", # flake8-implicit-str-concat
+  "ICN", # flake8-import-conventions
+  "PT", # flake8-pytest-style
+  "RET", # flake8-return
+  "ARG", # flake8-unused-arguments
+  "PD", # pandas-vet
+  "R", # refactor
+  "W", # warnings
+  "PERF", #perflint
+  "RUF", # ruff
+]
+
+[tool.ruff.lint.per-file-ignores]
+# ignores for the test files explicitly
+"tests/*" = [
+  "E712", # Avoid equality comparisons to `True`; use `if received:` for truth
+]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.ruff.lint.flake8-annotations]
+suppress-none-returning = true
