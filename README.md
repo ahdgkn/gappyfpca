@@ -1,8 +1,8 @@
 # gappyfpca
 
-`gappyfpca` is a simple, `numpy` and `scipy` based, Python package for generating a PCA representation of gappy functional data. It uses a pseudocovariance matrix of the gappy data to compute a first approximation for the principal components, a SLSQP algorithim is used to fit the coefficients. It can be run in parallel to speed up computation of the pseudocovariance and coefficients.
+`gappyfpca` is a simple, `numpy` and `scipy` based, Python package for generating a PCA representation of gappy functional data. It uses a pseudocovariance matrix of the gappy data to compute a first approximation for the principal components and a SLSQP minimisation algorithim to fit the coefficients. Subsequent iterations find the covariance from the reconstructed data and repeat the minimisation step to fit the coefficients with the gappy data. It can be run in parallel to speed up computation of the pseudocovariance and coefficients.
 
-The method is iterated with reconstructed data until convergence criteria is met - less than 1\% average change in imputed data for at least X iterations or maximum number of iterations reached.
+The method is iterated until convergence criteria is met - less than 1\% average change in imputed data for at least X iterations or maximum number of iterations reached.
 
 If you use this package please cite the paper referenced below.
 
