@@ -14,6 +14,9 @@ To install the package you can use `pip` after cloning. It is recommended to use
 	cd gappyfpca
 	pip install .
 
+Dependencies required for included tests can be downloaded using
+
+	pip install xxx
 ## Getting Started
 
 - Functional data must be stored as discretised values, interpolated to the same spacing. NaN values represent missing data.
