@@ -1,26 +1,27 @@
 import time
 from multiprocessing import Pool
+from typing import tuple
 
 import numpy as np
 from scipy.linalg import eigh
 from scipy.optimize import minimize
 
 
-def nancov_series(A):
-    """ Calculate a covariance approximation skipping NaN values in series
+def nancov_series(A: np.ndarray) -> np.ndarray:
+    """Calculate a covariance approximation skipping NaN values in series
 
     Parameters
     -----------
     A: array
         Interpolated data, N x L, each row is one data function
-        
+
     Returns
     --------
     cov = 1/N A.T . A
         Approximated covariance
     """
     n, p = A.shape
-    Anorm=A-np.nanmean(A,axis=0)
+    Anorm = A - np.nanmean(A, axis=0)
     cov = np.zeros((p, p))
     for i in range(p):
         for j in range(p):
@@ -31,32 +32,34 @@ def nancov_series(A):
 
     return cov
 
-def nancov_helper(args):
+
+def nancov_helper(args: tuple[np.ndarray, np.ndarray]) -> float:
     """Helper for parallel covariance function
-        calculate one element of dot product 
+    calculate one element of dot product
     """
-    A1,A2 = args
-    dot = A1*A2
+    A1, A2 = args
+    dot = A1 * A2
     norm = len(dot[~np.isnan(dot)])
     return np.nansum(dot) / norm
 
-def nancov_parallel(A):
-    """ Calculate a covariance approximation skipping NaN values in parallel
-    
+
+def nancov_parallel(A: np.ndarray) -> np.ndarray:
+    """Calculate a covariance approximation skipping NaN values in parallel
+
     Parameters
     -----------
     A: array
         Interpolated data, N x L, each row is one data function
-        
+
     Returns
     --------
     cov = 1/N A.T . A
         Approximated covariance
     """
     n, p = A.shape
-    Anorm=A-np.nanmean(A,axis=0)
+    Anorm = A - np.nanmean(A, axis=0)
     cov = np.zeros((p, p))
-    args_list = [(Anorm[:,i], Anorm[:,j]) for i in range(p) for j in range(p)]
+    args_list = [(Anorm[:, i], Anorm[:, j]) for i in range(p) for j in range(p)]
     with Pool() as pool:
         results = pool.map(nancov_helper, args_list)
     for i in range(p):
@@ -65,8 +68,9 @@ def nancov_parallel(A):
 
     return cov
 
-def nancov(A,iparallel=0):
-    """ Calculate a covariance approximation skipping NaN values
+
+def nancov(A: np.ndarray, iparallel: int = 0) -> np.ndarray:
+    """Calculate a covariance approximation skipping NaN values
 
     Parameters
     -----------
@@ -80,13 +84,14 @@ def nancov(A,iparallel=0):
     cov = 1/N A.T . A
         Approximated covariance
     """
-    #if iparallel=0 do in series, otherwise parallel
-    if iparallel==0:
+    # if iparallel=0 do in series, otherwise parallel
+    if iparallel == 0:
         return nancov_series(A)
     return nancov_parallel(A)
 
-def find_and_sort_eig(A):
-    """ Eigenvalue decomposition and sort in descending evalue size
+
+def find_and_sort_eig(A: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Eigenvalue decomposition and sort in descending evalue size
 
     Parameters
     -----------
@@ -94,9 +99,9 @@ def find_and_sort_eig(A):
 
     Returns
     --------
-    evalue: 
+    evalue:
         Eigenvalues sorted in descending size order
-    evector: 
+    evector:
         Eigenvectors sorted in descending evalue size order
         equal to principal components if A is covariance matrix
     """
@@ -111,7 +116,7 @@ def find_and_sort_eig(A):
     return evalue, evector
 
 
-def fpca_exp_var(eigenvalues):
+def fpca_exp_var(eigenvalues: np.ndarray) -> np.ndarray:
     """Returns cumulative explained variance of PC in descending order
     Parameters
     -----------
@@ -126,7 +131,8 @@ def fpca_exp_var(eigenvalues):
     exp_var = np.cumsum(eigenvalues) / np.sum(eigenvalues)
     return exp_var
 
-def fpca_num_coefs(evalue,var_rat,data=None):
+
+def fpca_num_coefs(evalue: np.ndarray, var_rat: float, data: np.ndarray = None) -> int:
     """Calculate the number of coefficients to retain for an explained variance of var_rat
     Parameters
     -----------
@@ -142,8 +148,8 @@ def fpca_num_coefs(evalue,var_rat,data=None):
         number of coefficients to retain
     """
 
-    if var_rat==1 and data is None:
-        raise ValueError('Must provide data array for var_rat=1')
+    if var_rat == 1 and data is None:
+        raise ValueError("Must provide data array for var_rat=1")
     exp_var = np.array([0])
     exp_var = np.hstack((exp_var, fpca_exp_var(evalue)))
 
@@ -151,7 +157,8 @@ def fpca_num_coefs(evalue,var_rat,data=None):
 
     return n_coefs
 
-def sum_sq_error(weight, data_func, fpca_comp):
+
+def sum_sq_error(weight: float, data_func: np.ndarray, fpca_comp: np.ndarray) -> float:
     """Sum of squared error for optimising weight ik
     Parameters
     -----------
@@ -162,7 +169,7 @@ def sum_sq_error(weight, data_func, fpca_comp):
     fpca_comp:
         principal component, k, to fit weight for
 
-    data_func and fpca_comp must be same length and with no missing data    
+    data_func and fpca_comp must be same length and with no missing data
     Returns
     --------
     Sum squared error between data function and weight * PC
@@ -170,7 +177,8 @@ def sum_sq_error(weight, data_func, fpca_comp):
     fitted_component = weight * fpca_comp
     return np.sum((data_func - fitted_component) ** 2)
 
-def process_weights(args):
+
+def process_weights(args: tuple[int, np.ndarray, np.ndarray, int]) -> np.ndarray:
     """Function to process weight optimisation for gappy functions
     Parameters
     -----------
@@ -187,20 +195,22 @@ def process_weights(args):
     fpca_weights:
         array of length n_coef containing the weights for data func j
     """
-    j, data_func, PCs, n_coefs=args
-    init_weight=0
-    fpca_weights=np.zeros(n_coefs)
+    j, data_func, PCs, n_coefs = args
+    init_weight = 0
+    fpca_weights = np.zeros(n_coefs)
     for i in range(n_coefs):
         fpca_comp = PCs[:, i]
         mask = np.isnan(data_func)
         fpca_comp_masked = fpca_comp[~mask]
         data_func_masked = data_func[~mask]
-        result = minimize(sum_sq_error, init_weight, args=(data_func_masked, fpca_comp_masked), method='SLSQP')
-        fpca_weights[i]=result.x
-        data_func=data_func-fpca_weights[i]*fpca_comp
+        result = minimize(sum_sq_error, init_weight, args=(data_func_masked, fpca_comp_masked), method="SLSQP")
+        fpca_weights[i] = result.x
+        data_func = data_func - fpca_weights[i] * fpca_comp
     return fpca_weights
 
-def fpca_weights_parallel(data_funcs, PCs):
+
+def fpca_weights_parallel(data_funcs: np.ndarray, PCs: np.ndarray) -> np.ndarray:
+
     """Compute full set of w_ij for gappy data functions and PCs using SQLSP minimisation, parallel
     Parameters
     -----------
@@ -217,16 +227,17 @@ def fpca_weights_parallel(data_funcs, PCs):
     n, n_coefs = PCs.shape
     fpca_weights = np.zeros((p, n_coefs))
     with Pool() as pool:
-        args_list = [(j, data_funcs[:,j], PCs, n_coefs) for j in range(p)]
+        args_list = [(j, data_funcs[:, j], PCs, n_coefs) for j in range(p)]
         results = pool.map(process_weights, args_list)
 
     for args, weight in zip(args_list, results, strict=False):
-        j,_,_,_  = args
+        j, _, _, _ = args
         fpca_weights[j, :] = weight
 
     return fpca_weights
 
-def fpca_weights_series(data_funcs, PCs):
+
+def fpca_weights_series(data_funcs: np.ndarray, PCs: np.ndarray) -> np.ndarray:
     """Compute full set of w_ij for gappy data functions and PCs using SQLSP minimisation, series
     Parameters
     -----------
@@ -244,12 +255,13 @@ def fpca_weights_series(data_funcs, PCs):
     n, n_coefs = PCs.shape
     fpca_weights = np.zeros((p, n_coefs))
     for j in range(p):
-        args = (j, data_funcs[:,j], PCs, n_coefs)
-        fpca_weights[j,:]=process_weights(args)
+        args = (j, data_funcs[:, j], PCs, n_coefs)
+        fpca_weights[j, :] = process_weights(args)
 
     return fpca_weights
 
-def fpca_weights(data_funcs,PCs,iparallel=0):
+
+def fpca_weights(data_funcs: np.ndarray, PCs: np.ndarray, iparallel: int = 0) -> np.ndarray:
     """Compute full set of w_ij for gappy data functions and PCs using SQLSP minimisation
     Parameters
     -----------
@@ -264,11 +276,12 @@ def fpca_weights(data_funcs,PCs,iparallel=0):
     fpca_weights:
         array containing weights of shape M x N
     """
-    if iparallel==0:
-        return fpca_weights_series(data_funcs,PCs)
-    return fpca_weights_parallel(data_funcs,PCs)
+    if iparallel == 0:
+        return fpca_weights_series(data_funcs, PCs)
+    return fpca_weights_parallel(data_funcs, PCs)
 
-def do_gappyfpca(data, var_rat,iparallel=0):
+
+def do_gappyfpca(data: np.ndarray, var_rat: float, iparallel: int = 0) -> tuple[np.ndarray, np.ndarray]:
     """Compute fpca components and coefficients for a set of gappy data functions
     Step 1 of iterative process
     ** evalues do not represent explained variance **
@@ -286,28 +299,29 @@ def do_gappyfpca(data, var_rat,iparallel=0):
     fpca_comps:
         principal components, n_coefs given by var_rat. shape n_coefs+1 x L. mean giving in row 0
     fpca_coefs
-        coefficients relating to data and PCs, shape M x n_coefs 
+        coefficients relating to data and PCs, shape M x n_coefs
     """
 
     data_mean = np.nanmean(data, axis=0)
 
     data_norm = data - data_mean
 
-    cov = nancov(data,iparallel)
+    cov = nancov(data, iparallel)
 
     evalue, fpca_comps = find_and_sort_eig(cov)
 
-    n_coefs=fpca_num_coefs(evalue,var_rat,data_norm)
+    n_coefs = fpca_num_coefs(evalue, var_rat, data_norm)
 
-    fpca_comps=fpca_comps[:,:n_coefs]
+    fpca_comps = fpca_comps[:, :n_coefs]
 
     fpca_coefs = fpca_weights(data_norm.T, fpca_comps, iparallel)
 
-    fpca_comps=np.vstack((data_mean,fpca_comps.T))
+    fpca_comps = np.vstack((data_mean, fpca_comps.T))
 
     return fpca_comps, fpca_coefs
 
-def reconstruct_func(fpca_mean, fpca_comps, fpca_coefs):
+
+def reconstruct_func(fpca_mean: np.ndarray, fpca_comps: np.ndarray, fpca_coefs: np.ndarray) -> np.ndarray:
     """Construct data functions from fPCA mean, components and coefficients
     Parameters
     -----------
@@ -328,7 +342,7 @@ def reconstruct_func(fpca_mean, fpca_comps, fpca_coefs):
     return func_recon
 
 
-def do_fpca_iterate(data, data_recon, var_rat,iparallel=0):
+def do_fpca_iterate(data: np.ndarray, data_recon: np.ndarray, var_rat: float, iparallel: int = 0) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Iterative step to compute fpca components and coefficients for a set of gappy data functions from reconstructed data
     Step 2 -> of iterative process
     Parameters
@@ -347,34 +361,35 @@ def do_fpca_iterate(data, data_recon, var_rat,iparallel=0):
     fpca_comps:
         principal components, n_coefs given by var_rat. shape n_coefs+1 x L. mean giving in row 0
     fpca_coefs
-        coefficients relating to data and PCs, shape M x n_coefs 
+        coefficients relating to data and PCs, shape M x n_coefs
     evalue:
         eigenvalues length n_coefs
     """
 
-    data_mean_recon=np.nanmean(data_recon,axis=0)
+    data_mean_recon = np.nanmean(data_recon, axis=0)
 
-    data_recon_norm=(data_recon-data_mean_recon)
+    data_recon_norm = data_recon - data_mean_recon
 
-    data_mean=np.nanmean(data,axis=0)
+    data_mean = np.nanmean(data, axis=0)
 
-    data_norm=data-data_mean_recon
+    data_norm = data - data_mean_recon
 
-    cov=np.cov(data_recon,bias=True,rowvar=False)
+    cov = np.cov(data_recon, bias=True, rowvar=False)
 
     evalue, fpca_comps = find_and_sort_eig(cov)
 
-    n_coefs=fpca_num_coefs(evalue,var_rat,data_norm)
+    n_coefs = fpca_num_coefs(evalue, var_rat, data_norm)
 
     fpca_comps = fpca_comps[:, :n_coefs]
 
-    fpca_coefs=fpca_weights(data_norm.T,fpca_comps,iparallel)
+    fpca_coefs = fpca_weights(data_norm.T, fpca_comps, iparallel)
 
-    fpca_comps=np.vstack((data_mean_recon,fpca_comps.T))
+    fpca_comps = np.vstack((data_mean_recon, fpca_comps.T))
 
     return fpca_comps, fpca_coefs, evalue
 
-def gappyfpca(data,var_rat,max_iter=25,num_iter=10,iparallel=0):
+
+def gappyfpca(data: np.ndarray, var_rat: float, max_iter: int = 25, num_iter: int = 10, iparallel: int = 0) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Full iteration process to compute fpca components and coefficients for a set of gappy data functions
     Iterates for num_iter iterations with stopping criteria met or upper limit of max_iter
     Parameters
@@ -395,7 +410,7 @@ def gappyfpca(data,var_rat,max_iter=25,num_iter=10,iparallel=0):
     fpca_comps:
         principal components, n_coefs given by var_rat. shape n_coefs+1 x L. mean giving in row 0
     fpca_coefs
-        coefficients relating to data and PCs, shape M x n_coefs 
+        coefficients relating to data and PCs, shape M x n_coefs
     evalue:
         eigenvalues length n_coefs
     run_stat
@@ -403,41 +418,38 @@ def gappyfpca(data,var_rat,max_iter=25,num_iter=10,iparallel=0):
     """
     # do gappy fpca - calculate and iterate up to X iterations
     # stops iteration if 10 its of drag dif<=1% - I should maybe make this better
-    start_time=time.time()
-    fpca_comps,fpca_coefs=do_gappyfpca(data,var_rat,iparallel)
-    data_recon=reconstruct_func(fpca_comps[0,:],fpca_comps[1:,:],fpca_coefs)
-    end_time=time.time()
-    print('Step 1, time:', end_time-start_time)
+    start_time = time.time()
+    fpca_comps, fpca_coefs = do_gappyfpca(data, var_rat, iparallel)
+    data_recon = reconstruct_func(fpca_comps[0, :], fpca_comps[1:, :], fpca_coefs)
+    end_time = time.time()
+    print("Step 1, time:", end_time - start_time)
 
-    it_count=0
-    it_total=0
-    data_dif=[]
-    coef1=[]
-    while it_count < num_iter and it_total<max_iter:
-        time1=time.time()
-        print('Iteration ', it_total+1)
+    it_count = 0
+    it_total = 0
+    data_dif = []
+    coef1 = []
+    while it_count < num_iter and it_total < max_iter:
+        time1 = time.time()
+        print("Iteration ", it_total + 1)
 
-        fpca_comps,fpca_coefs,evalue=do_fpca_iterate(data,data_recon,var_rat,iparallel)
+        fpca_comps, fpca_coefs, evalue = do_fpca_iterate(data, data_recon, var_rat, iparallel)
 
-        data_recon_old=np.copy(data_recon)
-        data_recon=reconstruct_func(fpca_comps[0,:],fpca_comps[1:,:],fpca_coefs)
+        data_recon_old = np.copy(data_recon)
+        data_recon = reconstruct_func(fpca_comps[0, :], fpca_comps[1:, :], fpca_coefs)
 
-        x=np.mean(np.abs((data_recon-data_recon_old)/data_recon_old))
+        x = np.mean(np.abs((data_recon - data_recon_old) / data_recon_old))
         data_dif.append(x)
-        coef1.append(np.abs(fpca_coefs[0,0]))
-        if x<=0.01:
-            it_count+=1
+        coef1.append(np.abs(fpca_coefs[0, 0]))
+        if x <= 0.01:
+            it_count += 1
         else:
-            it_count=0
+            it_count = 0
 
-        it_total+=1
+        it_total += 1
 
-        end_time=time.time()
-        print('Time: ', end_time-time1)
+        end_time = time.time()
+        print("Time: ", end_time - time1)
 
-    run_stat=np.vstack((data_dif,coef1))
+    run_stat = np.vstack((data_dif, coef1))
 
     return fpca_comps, fpca_coefs, evalue, run_stat
-
-
-
