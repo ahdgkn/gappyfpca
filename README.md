@@ -4,7 +4,7 @@
 
 The method is iterated until there is either 1) a less than 1\% average change in imputed data for at least X iterations or 2) the maximum number of iterations is reached.
 
-This package was developed to create a low order representation of aircraft trajectories for generative modelling. If you use this package please cite the paper referenced below.
+This package was developed to create a low-order representation of aircraft trajectories for generative modelling. If you use this package please cite the paper referenced below.
 
 ## Installation
 
@@ -26,13 +26,15 @@ Some considerations when using the package:
 
 - Functional data must be stored as discretised values, interpolated to the same spacing. NaN values represent missing data.
 - Data stored in numpy array of dimention N x L where N in the number of data, and L is the length of data
-- Data must be precleaned such that no data is fully empty and L = longest data ie no columns or rows with full NaNs, all data must span >0.5L
+- Data must be precleaned such that no data is fully empty and L = longest data ie no columns or rows with full NaNs, all data must span >0.5L **hard limit
 - Compute PC components, coefficients and eigenvalues with do_gappyfpca(data,var_rat,max_iter=25,num_iter=10,iparallel=0)
 	- data - numpy array of dimension N x L
 	- var_rat - desired explained variance by returned components
 	- max_iter - maximum iterations
 	- num_iter - number of iterations convergence criteria must be satisfied for
 	- iparallel - flag to run in parallel with multiprocessing
+
+The package is suitable for small datasets. As an example, the algorithm takes 75 s per iteration to compute the principal components for a set of 5000 functions of length 100 on 16 cores.
 
  ## Citation
 
