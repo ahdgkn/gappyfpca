@@ -1,6 +1,6 @@
 import time
 from multiprocessing import Pool
-from typing import tuple
+from typing import Tuple
 
 import numpy as np
 from scipy.linalg import eigh
