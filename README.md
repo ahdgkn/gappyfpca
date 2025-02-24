@@ -20,14 +20,14 @@ Dependencies required for included tests can be downloaded using
  
 ## Getting Started
 
-There is an example notebook provided in `tests` which generates a set of synthetic data, makes it gappy, and runs the function `do_gappyfpca`
+There is an example notebook provided in `tests` which generates a set of synthetic data, makes it gappy, and runs the function `gappyfpca`
 
 Some considerations when using the package:
 
 - Functional data must be stored as discretised values, interpolated to the same spacing. NaN values represent missing data.
 - Data stored in numpy array of dimention N x L where N in the number of data, and L is the length of data
 - Data must be precleaned such that no data is fully empty and L = longest data ie no columns or rows with full NaNs, all data must span >0.5L **hard limit
-- Compute PC components, coefficients and eigenvalues with do_gappyfpca(data,var_rat,max_iter=25,num_iter=10,iparallel=0)
+- Compute PC components, coefficients and eigenvalues with gappyfpca(data,var_rat,max_iter=25,num_iter=10,iparallel=0)
 	- data - numpy array of dimension N x L
 	- var_rat - desired explained variance by returned components
 	- max_iter - maximum iterations
