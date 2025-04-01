@@ -2,7 +2,7 @@ from multiprocessing import Pool
 
 import numpy as np
 
-def nancov(A: np.ndarray,iparallel=0) -> np.ndarray:
+def nancov(A: np.ndarray) -> np.ndarray:
 
     """
     Calculate a pseudocovariance matrix for a dataset, ignoring NaN values.
