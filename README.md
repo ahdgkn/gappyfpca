@@ -6,6 +6,12 @@ The method is iterated until there is either 1) a less than 1\% average change i
 
 This package was developed to create a low-order representation of aircraft trajectories for generative modelling. If you use this package please cite the paper referenced below.
 
+## Workflow
+
+The package implements a fPCA algorithm with a pseudocovariance calculated with gappy data to replace a covariance matrix for the first step. PCA weights are fitted with a optimisation function. Subsequent steps use reconstructed data to calculate the full covariance.
+
+INCLUDE WORKFLOW DIAGRAM HERE
+
 ## Installation
 
 To install the package you can use `pip` after cloning. It is recommended to use a virtual environment to avoid conflicts.
@@ -20,19 +26,7 @@ Dependencies required for included tests can be downloaded using
  
 ## Getting Started
 
-There is an example notebook provided in `tests` which generates a set of synthetic data, makes it gappy, and runs the function `gappyfpca`
-
-Some considerations when using the package:
-
-- Functional data must be stored as discretised values, interpolated to the same spacing. NaN values represent missing data.
-- Data stored in numpy array of dimention N x L where N in the number of data, and L is the length of data
-- Data must be precleaned such that no data is fully empty and L = longest data ie no columns or rows with full NaNs, all data must span >0.5L **hard limit
-- Compute PC components, coefficients and eigenvalues with gappyfpca(data,var_rat,max_iter=25,num_iter=10,iparallel=0)
-	- data - numpy array of dimension N x L
-	- var_rat - desired explained variance by returned components
-	- max_iter - maximum iterations
-	- num_iter - number of iterations convergence criteria must be satisfied for
-	- iparallel - flag to run in parallel with multiprocessing
+To get started please see the `get_started` notebook which explains the main functions of the package and demonstrates these with a simple example. Considerations for the data format are also included here.
 
 The package is suitable for small datasets. As an example, the algorithm takes 75 s per iteration to compute the principal components for a set of 5000 functions of length 100 on 16 cores.
 
@@ -41,6 +35,7 @@ The package is suitable for small datasets. As an example, the algorithm takes 7
 	 @article{hodgkin2025probabilistic,
 	  title={Probabilistic Simulation of Aircraft Descent via a Hybrid Physics-Data Approach},
 	  author={Hodgkin, Amy and Pepper, Nick and Thomas, Marc},
-	  journal={TBC},
-	  year={2025}
+	  journal={Aerospace Science and Technology},
+	  year={2025},
+          note={In review.}
 	}
