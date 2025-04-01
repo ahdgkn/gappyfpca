@@ -5,8 +5,7 @@ import numpy as np
 def nancov(A: np.ndarray,iparallel=0) -> np.ndarray:
 
     """
-    Calculate a psuedocovariance matrix for a dataset, ignoring NaN values.
-
+    Calculate a pseudocovariance matrix for a dataset, ignoring NaN values.
     Parameters
     ----------
     A : np.ndarray
