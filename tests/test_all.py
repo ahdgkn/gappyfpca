@@ -1,10 +1,45 @@
 from gappyfpca.fpca import *
 from sklearn.decomposition import PCA
 
+from gappyfpca.data_check import check_gappiness
 import numpy as np
 
 import pytest
 
+def test_check_gappiness():
+
+    # Test with a valid dataset
+    data = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    try:
+        result = check_gappiness(data)
+        assert result is None
+    except ValueError as e:
+        assert False, f"Unexpected ValueError: {e}"
+
+    # Test with a dataset containing all NaN values in a row
+    data_with_nan_row = np.array([[1, 2, 3], [np.nan, np.nan, np.nan], [7, 8, 9]])
+    try:
+        check_gappiness(data_with_nan_row)
+        assert False
+    except ValueError as e:
+        assert "Rows" in str(e)
+
+    # Test with a dataset containing all NaN values in a column
+    data_with_nan_col = np.array([[1, 2, np.nan], [4, 5, np.nan], [7, 8, np.nan]])
+    try:
+        check_gappiness(data_with_nan_col)
+        assert False
+    except ValueError as e:
+        assert "Columns" in str(e)
+    
+    # Test with a dataset containing NaN values in the dot product
+    data_with_nan_dot = np.array([[np.nan, np.nan, 3], [4, 5, 6], [7, 8, np.nan]])
+
+    try:
+        check_gappiness(data_with_nan_col)
+        assert False
+    except ValueError as e:
+        assert "Columns" in str(e)
 
 def test_nancov1():
 
