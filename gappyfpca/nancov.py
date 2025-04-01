@@ -37,7 +37,8 @@ def nancov(A: np.ndarray,iparallel=0) -> np.ndarray:
     # Compute the number of valid (non-NaN) pairs for each covariance entry
     N = np.dot(nan_mask.astype(int).T, nan_mask.astype(int)) 
     # Avoid division by zero
-    #N[N == 0] = np.nan
+    if np.any(N == 0):
+        raise ValueError("Some covariance entries have no valid data points. Check your data with data_gappiness function.")
 
     # Compute the weighted covariance matrix
     cov = cov_num / N
