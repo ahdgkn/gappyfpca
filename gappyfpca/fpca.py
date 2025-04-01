@@ -60,7 +60,7 @@ def do_step1(data: np.ndarray, var_rat: float, iparallel: int = 0) -> tuple[np.n
     data_norm = data - data_mean
 
     # calculate covariance matrix
-    cov = nancov(data, iparallel)
+    cov = nancov(data)
 
     # find and sort eigenvalues
     evalue, fpca_comps = find_and_sort_eig(cov)
