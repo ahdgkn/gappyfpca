@@ -11,7 +11,8 @@ def check_gappiness(data):
     if np.any(np.sum(nan_mask, axis=1) == 0):
         raise ValueError("Rows",np.where(np.sum(nan_mask,axis=1)==0) ,"have all NaN values. Please remove them before proceeding.")
     # Check if the dot product of the data matrix contains NaN values
-    N = np.dot(nan_mask.T, nan_mask)
+    N = np.dot(nan_mask.astype(int).T, nan_mask.astype(int))
+    print(N)
     if np.any(N == 0):
         offending_indices = np.where(N == 0)
         offending_pairs = list(zip(offending_indices[0], offending_indices[1]))
