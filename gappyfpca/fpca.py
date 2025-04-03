@@ -7,16 +7,20 @@ from gappyfpca.nancov import nancov
 from gappyfpca.weights import fpca_weights
 
 
-def reconstruct_func(fpca_mean: np.ndarray, fpca_comps: np.ndarray, fpca_coefs: np.ndarray) -> np.ndarray:
+def reconstruct_func(fpca_mean: np.ndarray, fpca_comps: np.ndarray, fpca_coefs: np.ndarray, num_coefs: int | None = None) -> np.ndarray:
     """
     Reconstruct the original data functions from FPCA components and coefficients.
 
     Parameters
     ----------
+    fpca_mean : np.ndarray
+        Mean function of the data. Shape is (L,).
     fpca_comps : np.ndarray
         Principal components, including the mean in the first row. Shape is (n_coefs + 1, L).
     fpca_coefs : np.ndarray
         Coefficients relating to data and PCs. Shape is (M, n_coefs).
+    num_coefs : int, optional
+        Number of coefficients to use for reconstruction. If None, all coefficients are used. Default is None.
 
     Returns
     -------
@@ -28,10 +32,13 @@ def reconstruct_func(fpca_mean: np.ndarray, fpca_comps: np.ndarray, fpca_coefs: 
     The function reconstructs the original data functions by multiplying the FPCA coefficients
     with the principal components and adding the mean function.
     """
-    return np.matmul(fpca_coefs, fpca_comps) + fpca_mean
+    if num_coefs is None:
+        return np.matmul(fpca_coefs, fpca_comps) + fpca_mean
+
+    return np.matmul(fpca_coefs[:, :num_coefs], fpca_comps[:num_coefs, :]) + fpca_mean
 
 
-def do_step1(data: np.ndarray, var_rat: float, iparallel: int = 0) -> tuple[np.ndarray, np.ndarray]:
+def do_step1(data: np.ndarray, iparallel: int = 0) -> tuple[np.ndarray, np.ndarray]:
     """
     Step 1 (before iterative step) to compute FPCA components and coefficients for a set of gappy data functions.
 
@@ -42,15 +49,13 @@ def do_step1(data: np.ndarray, var_rat: float, iparallel: int = 0) -> tuple[np.n
     data : np.ndarray
         Array containing M discretized data functions, interpolated to the same length L, with NaN for missing data.
         Shape is (M, L).
-    var_rat : float
-        Desired explained variance to retain components, between 0 and 1.
     iparallel : int, optional
         If 0, the calculation is done in series. If 1, the calculation is done in parallel. Default is 0.
 
     Returns
     -------
     fpca_comps : np.ndarray
-        Principal components, with the number of components given by var_rat. Shape is (n_coefs + 1, L), with the mean
+        Principal components, Shape is (n_coefs + 1, L), with the mean
         in row 0.
     fpca_coefs : np.ndarray
         Coefficients relating to data and PCs. Shape is (M, n_coefs).
@@ -65,8 +70,8 @@ def do_step1(data: np.ndarray, var_rat: float, iparallel: int = 0) -> tuple[np.n
     # find and sort eigenvalues
     evalue, fpca_comps = find_and_sort_eig(cov)
 
-    # retain number of coefficients for desired explained variance
-    n_coefs = fpca_num_coefs(evalue, var_rat, data_norm)
+    # retain number of coefficients for 100% explained variance
+    n_coefs = fpca_num_coefs(evalue, 1, cov)
     fpca_comps = fpca_comps[:, :n_coefs]
 
     # compute PCA weights
@@ -79,7 +84,7 @@ def do_step1(data: np.ndarray, var_rat: float, iparallel: int = 0) -> tuple[np.n
 
 
 def do_fpca_iterate(
-    data: np.ndarray, data_recon: np.ndarray, var_rat: float, iparallel: int = 0
+    data: np.ndarray, data_recon: np.ndarray, iparallel: int = 0
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Iterative step to compute FPCA components and coefficients for a set of gappy data functions from reconstructed
@@ -92,15 +97,13 @@ def do_fpca_iterate(
         Shape is (M, L).
     data_recon : np.ndarray
         Array containing reconstructed data functions, with no missing data. Shape is (M, L).
-    var_rat : float
-        Desired explained variance to retain components, between 0 and 1.
     iparallel : int, optional
         If 0, the calculation is done in series. If 1, the calculation is done in parallel. Default is 0.
 
     Returns
     -------
     fpca_comps : np.ndarray
-        Principal components, with the number of components given by var_rat. Shape is (n_coefs + 1, L), with the mean
+        Principal components. Shape is (n_coefs + 1, L), with the mean
         in row 0.
     fpca_coefs : np.ndarray
         Coefficients relating to data and PCs. Shape is (M, n_coefs).
@@ -118,8 +121,8 @@ def do_fpca_iterate(
     # find and sort eigenvalues
     evalue, fpca_comps = find_and_sort_eig(cov)
 
-    # retain number of coefficients for desired explained variance
-    n_coefs = fpca_num_coefs(evalue, var_rat, data_norm)
+    # retain number of coefficients for 100% explained variance
+    n_coefs = fpca_num_coefs(evalue, 1, cov)
     fpca_comps = fpca_comps[:, :n_coefs]
 
     # compute PCA weights
@@ -132,7 +135,7 @@ def do_fpca_iterate(
 
 
 def gappyfpca(
-    data: np.ndarray, var_rat: float, max_iter: int = 25, num_iter: int = 10, iparallel: int = 0
+    data: np.ndarray, max_iter: int = 25, num_iter: int = 10, iparallel: int = 0
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Full iteration process to compute FPCA components and coefficients for a set of gappy data functions.
@@ -143,8 +146,6 @@ def gappyfpca(
     data : np.ndarray
         Array containing M discretized data functions, interpolated to the same length L, with NaN for missing data.
         Shape is (M, L).
-    var_rat : float
-        Desired explained variance to retain components, between 0 and 1.
     max_iter : int, optional
         Maximum number of iterations. Default is 25.
     num_iter : int, optional
@@ -155,7 +156,7 @@ def gappyfpca(
     Returns
     -------
     fpca_comps : np.ndarray
-        Principal components, with the number of components given by var_rat. Shape is (n_coefs + 1, L), with the mean
+        Principal components, Shape is (n_coefs + 1, L), with the mean
         in row 0.
     fpca_coefs : np.ndarray
         Coefficients relating to data and PCs. Shape is (M, n_coefs).
@@ -174,7 +175,7 @@ def gappyfpca(
     # do gappy fpca - calculate and iterate up to X iterations
     # stops iteration if 10 its of drag dif<=1% - I should maybe make this better
     start_time = time.time()
-    fpca_comps, fpca_coefs = do_step1(data, var_rat, iparallel)
+    fpca_comps, fpca_coefs = do_step1(data, iparallel)
     data_recon = reconstruct_func(fpca_comps[0, :], fpca_comps[1:, :], fpca_coefs)
     end_time = time.time()
     print("Step 1, time:", end_time - start_time)
@@ -187,7 +188,7 @@ def gappyfpca(
         time1 = time.time()
         print("Iteration ", it_total + 1)
 
-        fpca_comps, fpca_coefs, evalue = do_fpca_iterate(data, data_recon, var_rat, iparallel)
+        fpca_comps, fpca_coefs, evalue = do_fpca_iterate(data, data_recon, iparallel)
 
         data_recon_old = np.copy(data_recon)
         data_recon = reconstruct_func(fpca_comps[0, :], fpca_comps[1:, :], fpca_coefs)
