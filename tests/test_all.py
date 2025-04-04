@@ -171,7 +171,7 @@ def test_gappyfpca():
 
 
     # Generate fpca of full data using
-    fpca_comps,fpca_coefs,evalue,run_stat=gappyfpca(data,1,max_iter=15,num_iter=5,iparallel=0) # can i test parallel too?
+    fpca_comps,fpca_coefs,evalue,run_stat=gappyfpca(data,max_iter=15,num_iter=5,iparallel=0) # can i test parallel too?
 
     # Impute missing data
 
