@@ -35,6 +35,9 @@ def reconstruct_func(fpca_mean: np.ndarray, fpca_comps: np.ndarray, fpca_coefs: 
     if num_coefs is None:
         return np.matmul(fpca_coefs, fpca_comps) + fpca_mean
 
+    if num_coefs > fpca_comps.shape[0]:
+        num_coefs = fpca_comps.shape[0]
+
     return np.matmul(fpca_coefs[:, :num_coefs], fpca_comps[:num_coefs, :]) + fpca_mean
 
 
