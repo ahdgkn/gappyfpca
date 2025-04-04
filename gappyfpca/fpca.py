@@ -16,7 +16,7 @@ def reconstruct_func(fpca_mean: np.ndarray, fpca_comps: np.ndarray, fpca_coefs: 
     fpca_mean : np.ndarray
         Mean function of the data. Shape is (L,).
     fpca_comps : np.ndarray
-        Principal components, including the mean in the first row. Shape is (n_coefs + 1, L).
+        Principal components Shape is (n_coefs + 1, L).
     fpca_coefs : np.ndarray
         Coefficients relating to data and PCs. Shape is (M, n_coefs).
     num_coefs : int, optional
