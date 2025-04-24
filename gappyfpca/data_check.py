@@ -39,7 +39,7 @@ def clean_empty_data(data: np.ndarray) -> np.ndarray:
     """
     # Remove rows and columns that are fully empty
     data_cleaned = data[~np.isnan(data).all(axis=1), :]
-    data_cleaned[:, ~np.isnan(data_cleaned).all(axis=0)]
+    data_cleaned = data_cleaned[:, ~np.isnan(data_cleaned).all(axis=0)]
     print(
         len(data) - len(data_cleaned),
         "rows and",

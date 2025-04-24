@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from sklearn.decomposition import PCA
 
-from gappyfpca.data_check import check_gappiness
+from gappyfpca.data_check import check_gappiness,clean_empty_data
 from gappyfpca.eig import find_and_sort_eig, fpca_num_coefs
 from gappyfpca.fpca import gappyfpca, reconstruct_func
 from gappyfpca.nancov import nancov
@@ -33,6 +33,22 @@ def test_check_gappiness():
     data_with_nan_dot = np.array([[np.nan, 2, 3], [np.nan, 5, 6], [7, np.nan, 9]])
     with pytest.raises(ValueError, match="Dot of data contains NaN values"):
         check_gappiness(data_with_nan_dot) # Corrected variable used here
+
+def test_clean_empty_data():
+    # Test with a dataset that has empty rows and columns
+    data = np.array([[1, 2, np.nan], [np.nan, np.nan, np.nan], [7, 8, np.nan]])    
+    cleaned_data = clean_empty_data(data)
+    
+    # Check if the cleaned data contains the expected values
+    expected_values = np.array([[1, 2], [7, 8]])
+    assert np.array_equal(cleaned_data, expected_values)
+
+    # Test with a dataset that has no empty rows or columns
+    data_no_empty = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    cleaned_data_no_empty = clean_empty_data(data_no_empty)
+    
+    assert np.array_equal(cleaned_data_no_empty, data_no_empty)
+
 
 # do for iparallel=1 too
 @pytest.mark.parametrize("iparallel", [0, 1])
