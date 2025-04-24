@@ -238,6 +238,7 @@ def gappyfpca(
         num_recon = fpca_num_coefs(evalue, exp_var) if exp_var < 1 else None
         data_recon_test = reconstruct_func(fpca_comps[0, :], fpca_comps[1:, :], fpca_coefs, num_recon)
 
+        # check if the reconstruction is stable on previous value with L2 norm
         recon_change = l2_error(data_recon, data_recon_prev)
         data_dif.append(recon_change)
 
