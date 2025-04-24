@@ -16,7 +16,7 @@ INCLUDE WORKFLOW DIAGRAM HERE
 
 To install the package you can use `pip` after cloning. It is recommended to use a virtual environment to avoid conflicts.
 
-	git clone
+	git clone https://github.com/amyhodgkin/gappyfpca.git
 	cd gappyfpca
 	pip install .
 
@@ -32,10 +32,9 @@ The package is suitable for small datasets. As an example, the algorithm takes 7
 
  ## Citation
 
-	 @article{hodgkin2025probabilistic,
+	@article{hodgkin2025probabilistic,
 	  title={Probabilistic Simulation of Aircraft Descent via a Hybrid Physics-Data Approach},
 	  author={Hodgkin, Amy and Pepper, Nick and Thomas, Marc},
-	  journal={Aerospace Science and Technology},
-	  year={2025},
-          note={In review.}
+	  journal={arXiv preprint arXiv:2504.02529},
+	  year={2025}
 	}
