@@ -166,7 +166,7 @@ def test_gappyfpca_integration(iparallel):
     check_gappiness(data)
 
     # Run gappyfpca
-    fpca_comps, fpca_coefs, evalue, run_stat = gappyfpca(data, 1, max_iter=15, num_iter=5, iparallel=iparallel)
+    fpca_comps, fpca_coefs, evalue, run_stat = gappyfpca(data, max_iter=15, num_iter=5, iparallel=iparallel)
 
     # Impute missing data
     function_recon = reconstruct_func(fpca_comps[0, :], fpca_comps[1:, :], fpca_coefs)
