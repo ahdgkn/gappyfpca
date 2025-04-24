@@ -2,12 +2,15 @@ import time
 
 import numpy as np
 
+from gappyfpca.data_check import check_gappiness
 from gappyfpca.eig import find_and_sort_eig, fpca_num_coefs
 from gappyfpca.nancov import nancov
 from gappyfpca.weights import fpca_weights
 
 
-def reconstruct_func(fpca_mean: np.ndarray, fpca_comps: np.ndarray, fpca_coefs: np.ndarray, num_coefs: int | None = None) -> np.ndarray:
+def reconstruct_func(
+    fpca_mean: np.ndarray, fpca_comps: np.ndarray, fpca_coefs: np.ndarray, num_coefs: int | None = None
+) -> np.ndarray:
     """
     Reconstruct the original data functions from FPCA components and coefficients.
 
@@ -137,8 +140,32 @@ def do_fpca_iterate(
     return fpca_comps, fpca_coefs, evalue
 
 
+def l2_error(current: np.ndarray, prev: np.ndarray) -> bool:
+    """
+    Calculate the change in reconstruction, L2
+
+    Parameters
+    ----------
+    data_recon : np.ndarray
+        Current reconstructed data.
+    data_recon_prev : np.ndarray
+        Previous reconstructed data.
+
+    Returns
+    -------
+    relative_change : float
+        Relative change in reconstruction.
+    """
+    return np.linalg.norm(prev - current) / np.linalg.norm(current)
+
+
 def gappyfpca(
-    data: np.ndarray, max_iter: int = 25, num_iter: int = 10, iparallel: int = 0
+    data: np.ndarray,
+    exp_var: float = 0.95,
+    max_iter: int = 50,
+    stable_iter: int = 4,
+    tol: float = 5e-3,
+    iparallel: int = 0,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Full iteration process to compute FPCA components and coefficients for a set of gappy data functions.
@@ -149,10 +176,14 @@ def gappyfpca(
     data : np.ndarray
         Array containing M discretized data functions, interpolated to the same length L, with NaN for missing data.
         Shape is (M, L).
+    exp_var : float, optional
+        Explained variance to retain. This is the explained variance that the convergence will be tested at. Default is 0.95.
     max_iter : int, optional
         Maximum number of iterations. Default is 25.
-    num_iter : int, optional
-        Number of iterations to achieve less than 1% change in reconstruction before stopping. Default is 10.
+    stable_iter : int, optional
+        Number of iterations to achieve less than 1% change in reconstruction before stopping. Default is 5.
+    tol : float, optional
+        Tolerance for convergence. Default is 5e-3.
     iparallel : int, optional
         If 0, the calculation is done in series. If 1, the calculation is done in parallel. Default is 0.
 
@@ -165,9 +196,8 @@ def gappyfpca(
         Coefficients relating to data and PCs. Shape is (M, n_coefs).
     evalue : np.ndarray
         Eigenvalues of length n_coefs.
-    run_stat : np.ndarray
-        Array of convergence stats, where row 1 is the difference between data_recon_i and data_recon_i-1, and row 2 is
-        coef[0,0].
+    data_dif : np.ndarray
+        List of reconstruction differences at each iteration.
 
     Notes
     -----
@@ -178,37 +208,63 @@ def gappyfpca(
     # do gappy fpca - calculate and iterate up to X iterations
     # stops iteration if 10 its of drag dif<=1% - I should maybe make this better
     start_time = time.time()
+    print("=" * 50)
+    print("Gappy Functional PCA: Starting Analysis")
+    print("=" * 50)
+    # check data validity before running gappyfpca
+    print("Checking data validity...")
+    check_gappiness(data)
+    print("-"*30, "\n")
+    print("Starting fPCA computation...")
     fpca_comps, fpca_coefs = do_step1(data, iparallel)
+    # reconstruct data fully for iterative steps
     data_recon = reconstruct_func(fpca_comps[0, :], fpca_comps[1:, :], fpca_coefs)
+    data_recon_test = np.copy(data_recon)
     end_time = time.time()
-    print("Step 1, time:", end_time - start_time)
+    print(f"Time for initial step: {end_time - start_time:.2f} seconds\n")
 
+    stable_count = 0
     it_count = 0
-    it_total = 0
     data_dif = []
-    coef1 = []
-    while it_count < num_iter and it_total < max_iter:
-        time1 = time.time()
-        print("Iteration ", it_total + 1)
+    print("Entering iterative loop...\n")
+    while stable_count < stable_iter and it_count < max_iter:
+        print(f"--- Iteration {it_count + 1}/{max_iter} ---")
+        time_int = time.time()
 
         fpca_comps, fpca_coefs, evalue = do_fpca_iterate(data, data_recon, iparallel)
 
-        data_recon_old = np.copy(data_recon)
+        data_recon_prev = np.copy(data_recon_test)
         data_recon = reconstruct_func(fpca_comps[0, :], fpca_comps[1:, :], fpca_coefs)
+        num_recon = fpca_num_coefs(evalue, exp_var) if exp_var < 1 else None
+        data_recon_test = reconstruct_func(fpca_comps[0, :], fpca_comps[1:, :], fpca_coefs, num_recon)
 
-        x = np.mean(np.abs((data_recon - data_recon_old) / data_recon_old))
-        data_dif.append(x)
-        coef1.append(np.abs(fpca_coefs[0, 0]))
-        if x <= 0.01:
-            it_count += 1
+        recon_change = l2_error(data_recon, data_recon_prev)
+        data_dif.append(recon_change)
+
+        if recon_change < tol:
+            stable_count += 1
+            print(
+                f"     Relative reconstruction is below tolerance: {recon_change:.2e} | Stable count: {stable_count}/{stable_iter}"
+            )
         else:
-            it_count = 0
+            stable_count = 0
+            print(f"     Relative reconstruction is above tolerance: {recon_change:.2e}")
 
-        it_total += 1
+        it_count += 1
 
         end_time = time.time()
-        print("Time: ", end_time - time1)
+        print(f"     Iteration time: {end_time - time_int:.3f} seconds")
 
-    run_stat = np.vstack((data_dif, coef1))
+    # crop to number of coefficients
+    if num_recon is not None:
+        fpca_comps = fpca_comps[: num_recon + 1, :]
+        fpca_coefs = fpca_coefs[:, :num_recon]
+    print("=" * 50)
+    print("Gappy fPCA Computation Finished")
+    print("=" * 50)
+    print(f"Total iterations: {it_count}/{max_iter}")
+    print(f"Stable iterations: {stable_count}/{stable_iter}")
+    print(f"Final relative reconstruction change: {data_dif[-1]:.2e}")
+    print(f"Total computation time: {end_time - start_time:.2f} seconds")
 
-    return fpca_comps, fpca_coefs, evalue, run_stat
+    return fpca_comps, fpca_coefs, evalue, data_dif

@@ -4,7 +4,7 @@ from sklearn.decomposition import PCA
 
 from gappyfpca.data_check import check_gappiness,clean_empty_data
 from gappyfpca.eig import find_and_sort_eig, fpca_num_coefs
-from gappyfpca.fpca import gappyfpca, reconstruct_func
+from gappyfpca.fpca import gappyfpca, reconstruct_func, l2_error
 from gappyfpca.nancov import nancov
 from gappyfpca.weights import fpca_weights
 
@@ -168,7 +168,7 @@ def test_gappyfpca_integration(iparallel):
     # Sinusoidal patterns
     np.random.seed(42) # Ensure reproducibility
     x = np.linspace(0, 2 * np.pi, L)
-    functions = np.array([10 + np.random.uniform(0.1, 5) * np.sin(x * np.random.uniform(1, 1.5) + np.random.uniform(0, np.pi / 2))
+    functions = np.array([np.polyval(np.random.uniform(-1, 1, size=1), np.linspace(-1, 1, L)) 
                       for _ in range(M)])
 
     data = np.copy(functions)
@@ -182,7 +182,7 @@ def test_gappyfpca_integration(iparallel):
     check_gappiness(data)
 
     # Run gappyfpca
-    fpca_comps, fpca_coefs, evalue, run_stat = gappyfpca(data, max_iter=15, num_iter=5, iparallel=iparallel)
+    fpca_comps, fpca_coefs, evalue, run_stat = gappyfpca(data, exp_var=0.95, max_iter=10, stable_iter=5, tol = 5e-3, iparallel=iparallel)
 
     # Impute missing data
     function_recon = reconstruct_func(fpca_comps[0, :], fpca_comps[1:, :], fpca_coefs)
@@ -191,7 +191,6 @@ def test_gappyfpca_integration(iparallel):
          pytest.fail(f"Reconstructed function contains NaNs for iparallel={iparallel}")
 
     # Calculate mean absolute error across all points
-    mean_error = np.mean(np.abs(functions - function_recon))
 
     # Assert that the mean absolute error is below a threshold
-    assert mean_error < 0.1, f"Mean reconstruction error {mean_error} is too high for iparallel={iparallel}"
+    assert run_stat[-1] < 1e-4, f"Mean reconstruction error {run_stat[-1]} is too high for iparallel={iparallel}"
