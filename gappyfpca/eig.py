@@ -57,7 +57,7 @@ def fpca_exp_var(eigenvalues: np.ndarray) -> np.ndarray:
     return np.cumsum(eigenvalues) / np.sum(eigenvalues)
 
 
-def fpca_num_coefs(evalue: np.ndarray, var_rat: float, data: np.ndarray = None) -> int:
+def fpca_num_coefs(evalue: np.ndarray, var_rat: float, A: np.ndarray = None) -> int:
     """
     Calculate the number of coefficients to retain for an explained variance of var_rat.
 
@@ -67,18 +67,19 @@ def fpca_num_coefs(evalue: np.ndarray, var_rat: float, data: np.ndarray = None) 
         Array of eigenvalues.
     var_rat : float
         Fraction of explained variance to retain, between 0 and 1.
-    data : np.ndarray, optional
-        Data array, required if var_rat is 1 to determine the limits of max coefficients based on amount of data.
+    A : np.ndarray, optional
+        Data covariance, required if var_rat is 1 to determine the limits of max coefficients based on covariance rank.
 
     Returns
     -------
     int
         Number of coefficients to retain.
     """
-
-    if var_rat == 1 and data is None:
+    if not (0 < var_rat <= 1):
+        raise ValueError("var_rat must be between 0 (exclusive) and 1 (inclusive)")
+    
+    if var_rat == 1 and A is None:
         raise ValueError("Must provide data array for var_rat=1")
     exp_var = np.array([0])
     exp_var = np.hstack((exp_var, fpca_exp_var(evalue)))
-
-    return np.argmax(exp_var - var_rat >= 0) if var_rat != 1 else min(len(data[:, 0]), len(data[0, :]) - 1)
+    return np.argmax(exp_var - var_rat >= 0) if var_rat != 1 else np.linalg.matrix_rank(A)
