@@ -6,6 +6,7 @@ def nancov(A: np.ndarray) -> np.ndarray:
 
     """
     Calculate a pseudocovariance matrix for a dataset, ignoring NaN values.
+
     Parameters
     ----------
     A : np.ndarray
@@ -36,6 +37,7 @@ def nancov(A: np.ndarray) -> np.ndarray:
     # Compute the number of valid (non-NaN) pairs for each covariance entry
     N = np.dot(nan_mask.astype(int).T, nan_mask.astype(int)) 
     # Avoid division by zero
+
     if np.any(N == 0):
         raise ValueError("Some covariance entries have no valid data points. Check your data with data_gappiness function.")
 
