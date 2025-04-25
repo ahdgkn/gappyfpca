@@ -140,7 +140,7 @@ def fpca_update(
     return fpca_comps, fpca_coefs, evalue
 
 
-def l2_error(current: np.ndarray, prev: np.ndarray) -> bool:
+def l2_error(current: np.ndarray, prev: np.ndarray) -> np.ndarray:
     """
     Calculate the change in reconstruction, L2
 
