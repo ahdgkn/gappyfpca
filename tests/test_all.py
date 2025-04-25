@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-from sklearn.decomposition import PCA
 
 from gappyfpca.data_check import check_gappiness,clean_empty_data
 from gappyfpca.eig import eig_decomp, fpca_num_coefs
@@ -110,12 +109,12 @@ def test_fpca_weights1(iparallel):
     # Step 1: Center the data
     X_centered = X - np.mean(X, axis=0)
 
-    # Step 2: Perform PCA
-    pca = PCA(n_components=3)
-    pca.fit(X_centered)
-
-    # Step 3: Get the principal components (eigenvectors)
-    PCs = pca.components_.T
+    # Step : Get the principal components (eigenvectors)
+    PCs = np.array([[ 4.47213595e-01,  8.94427191e-01, -4.29987528e-17],
+       [ 4.47213595e-01, -2.23606798e-01,  8.66025404e-01],
+       [ 4.47213595e-01, -2.23606798e-01, -2.88675135e-01],
+       [ 4.47213595e-01, -2.23606798e-01, -2.88675135e-01],
+       [ 4.47213595e-01, -2.23606798e-01, -2.88675135e-01]])
 
     # Step 4: Compute the weights (scores) for each data point
     ans_weights = np.dot(X_centered, PCs)
