@@ -44,7 +44,7 @@ def reconstruct_func(
     return np.matmul(fpca_coefs[:, :num_coefs], fpca_comps[:num_coefs, :]) + fpca_mean
 
 
-def do_step1(data: np.ndarray, iparallel: int = 0) -> tuple[np.ndarray, np.ndarray]:
+def fpca_initial(data: np.ndarray, iparallel: int = 0) -> tuple[np.ndarray, np.ndarray]:
     """
     Step 1 (before iterative step) to compute FPCA components and coefficients for a set of gappy data functions.
 
@@ -89,7 +89,7 @@ def do_step1(data: np.ndarray, iparallel: int = 0) -> tuple[np.ndarray, np.ndarr
     return fpca_comps, fpca_coefs
 
 
-def do_fpca_iterate(
+def fpca_update(
     data: np.ndarray, data_recon: np.ndarray, iparallel: int = 0
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
@@ -216,7 +216,7 @@ def gappyfpca(
     check_gappiness(data)
     print("-"*30, "\n")
     print("Starting fPCA computation...")
-    fpca_comps, fpca_coefs = do_step1(data, iparallel)
+    fpca_comps, fpca_coefs = fpca_initial(data, iparallel)
     # reconstruct data fully for iterative steps
     data_recon = reconstruct_func(fpca_comps[0, :], fpca_comps[1:, :], fpca_coefs)
     data_recon_test = np.copy(data_recon)
@@ -231,7 +231,7 @@ def gappyfpca(
         print(f"--- Iteration {it_count + 1}/{max_iter} ---")
         time_int = time.time()
 
-        fpca_comps, fpca_coefs, evalue = do_fpca_iterate(data, data_recon, iparallel)
+        fpca_comps, fpca_coefs, evalue = fpca_update(data, data_recon, iparallel)
 
         data_recon_prev = np.copy(data_recon_test)
         data_recon = reconstruct_func(fpca_comps[0, :], fpca_comps[1:, :], fpca_coefs)
