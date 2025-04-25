@@ -166,6 +166,7 @@ def gappyfpca(
     stable_iter: int = 4,
     tol: float = 5e-3,
     iparallel: int = 0,
+    verbose: bool = True,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Full iteration process to compute FPCA components and coefficients for a set of gappy data functions.
@@ -186,6 +187,8 @@ def gappyfpca(
         Tolerance for convergence. Default is 5e-3.
     iparallel : int, optional
         If 0, the calculation is done in series. If 1, the calculation is done in parallel. Default is 0.
+    verbose : bool, optional
+        If True, print progress messages. Default is True.
 
     Returns
     -------
@@ -208,27 +211,39 @@ def gappyfpca(
     # do gappy fpca - calculate and iterate up to X iterations
     # stops iteration if 10 its of drag dif<=1% - I should maybe make this better
     start_time = time.time()
-    print("=" * 50)
-    print("Gappy Functional PCA: Starting Analysis")
-    print("=" * 50)
-    # check data validity before running gappyfpca
-    print("Checking data validity...")
+
+    if verbose:
+        print("=" * 50)
+        print("Gappy Functional PCA: Starting Analysis")
+        print("=" * 50)
+        print("Checking data validity...")
+
     check_gappiness(data)
-    print("-"*30, "\n")
-    print("Starting fPCA computation...")
+
+    if verbose:
+        print("-" * 30, "\n")
+        print("Starting fPCA computation...")
+
     fpca_comps, fpca_coefs = fpca_initial(data, iparallel)
     # reconstruct data fully for iterative steps
     data_recon = reconstruct_func(fpca_comps[0, :], fpca_comps[1:, :], fpca_coefs)
     data_recon_test = np.copy(data_recon)
     end_time = time.time()
-    print(f"Time for initial step: {end_time - start_time:.2f} seconds\n")
+
+    if verbose:
+        print(f"Time for initial step: {end_time - start_time:.2f} seconds\n")
 
     stable_count = 0
     it_count = 0
     data_dif = []
-    print("Entering iterative loop...\n")
+
+    if verbose:
+        print("Entering iterative loop...\n")
+
     while stable_count < stable_iter and it_count < max_iter:
-        print(f"--- Iteration {it_count + 1}/{max_iter} ---")
+        if verbose:
+            print(f"--- Iteration {it_count + 1}/{max_iter} ---")
+
         time_int = time.time()
 
         fpca_comps, fpca_coefs, evalue = fpca_update(data, data_recon, iparallel)
@@ -244,28 +259,35 @@ def gappyfpca(
 
         if recon_change < tol:
             stable_count += 1
-            print(
-                f"     Relative reconstruction is below tolerance: {recon_change:.2e} | Stable count: {stable_count}/{stable_iter}"
-            )
+
+            if verbose:
+                print(
+                    f"     Relative reconstruction is below tolerance: {recon_change:.2e} | Stable count: {stable_count}/{stable_iter}"
+                )
         else:
             stable_count = 0
-            print(f"     Relative reconstruction is above tolerance: {recon_change:.2e}")
+            if verbose:
+                print(f"     Relative reconstruction is above tolerance: {recon_change:.2e}")
 
         it_count += 1
 
         end_time = time.time()
-        print(f"     Iteration time: {end_time - time_int:.3f} seconds")
+        if verbose:
+            print(f"     Iteration time: {end_time - time_int:.3f} seconds")
 
     # crop to number of coefficients
     if num_recon is not None:
         fpca_comps = fpca_comps[: num_recon + 1, :]
         fpca_coefs = fpca_coefs[:, :num_recon]
-    print("=" * 50)
-    print("Gappy fPCA Computation Finished")
-    print("=" * 50)
-    print(f"Total iterations: {it_count}/{max_iter}")
-    print(f"Stable iterations: {stable_count}/{stable_iter}")
-    print(f"Final relative reconstruction change: {data_dif[-1]:.2e}")
-    print(f"Total computation time: {end_time - start_time:.2f} seconds")
+
+    if verbose:
+        print("=" * 50)
+        print("Gappy fPCA Computation Finished")
+        print(num_recon, "coefficients retained for", exp_var * 100, "% explained variance")
+        print("=" * 50)
+        print(f"Total iterations: {it_count}/{max_iter}")
+        print(f"Stable iterations: {stable_count}/{stable_iter}")
+        print(f"Final relative reconstruction change: {data_dif[-1]:.2e}")
+        print(f"Total computation time: {end_time - start_time:.2f} seconds")
 
     return fpca_comps, fpca_coefs, evalue, data_dif
