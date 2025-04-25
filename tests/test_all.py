@@ -3,7 +3,7 @@ import pytest
 from sklearn.decomposition import PCA
 
 from gappyfpca.data_check import check_gappiness,clean_empty_data
-from gappyfpca.eig import find_and_sort_eig, fpca_num_coefs
+from gappyfpca.eig import eig_decomp, fpca_num_coefs
 from gappyfpca.fpca import gappyfpca, reconstruct_func, l2_error
 from gappyfpca.nancov import nancov
 from gappyfpca.weights import fpca_weights
@@ -74,12 +74,12 @@ def test_nancov2():
     ans=np.array([[0.25,0.25,-0.5],[0.25, 0.25, 0.5],[-0.5,0.5,1]])
     assert np.isclose(cov, ans).all()
 
-def test_eigsort():
+def test_eigdecomp():
     cov=np.array([[4, 0, 0],
                   [0, 9, 0],
                   [0, 0, 16]])
 
-    eval,evec=find_and_sort_eig(cov)
+    eval,evec=eig_decomp(cov)
 
     eval_ans=np.array([ 16,9,4])
     evec_ans=np.array([[0, 0,  1],

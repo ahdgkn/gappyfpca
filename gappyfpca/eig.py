@@ -2,7 +2,7 @@ import numpy as np
 from scipy.linalg import eigh
 
 
-def find_and_sort_eig(A: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def eig_decomp(A: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
     Perform eigenvalue decomposition and sort the results in descending order of eigenvalue size.
 
@@ -77,7 +77,7 @@ def fpca_num_coefs(evalue: np.ndarray, var_rat: float, A: np.ndarray = None) -> 
     """
     if not (0 < var_rat <= 1):
         raise ValueError("var_rat must be between 0 (exclusive) and 1 (inclusive)")
-    
+
     if var_rat == 1 and A is None:
         raise ValueError("Must provide data array for var_rat=1")
     exp_var = np.array([0])

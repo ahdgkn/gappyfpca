@@ -3,7 +3,7 @@ import time
 import numpy as np
 
 from gappyfpca.data_check import check_gappiness
-from gappyfpca.eig import find_and_sort_eig, fpca_num_coefs
+from gappyfpca.eig import eig_decomp, fpca_num_coefs
 from gappyfpca.nancov import nancov
 from gappyfpca.weights import fpca_weights
 
@@ -74,7 +74,7 @@ def fpca_initial(data: np.ndarray, iparallel: int = 0) -> tuple[np.ndarray, np.n
     cov = nancov(data)
 
     # find and sort eigenvalues
-    evalue, fpca_comps = find_and_sort_eig(cov)
+    evalue, fpca_comps = eig_decomp(cov)
 
     # retain number of coefficients for 100% explained variance
     n_coefs = fpca_num_coefs(evalue, 1, cov)
@@ -125,7 +125,7 @@ def fpca_update(
     cov = np.cov(data_recon, bias=True, rowvar=False)
 
     # find and sort eigenvalues
-    evalue, fpca_comps = find_and_sort_eig(cov)
+    evalue, fpca_comps = eig_decomp(cov)
 
     # retain number of coefficients for 100% explained variance
     n_coefs = fpca_num_coefs(evalue, 1, cov)
