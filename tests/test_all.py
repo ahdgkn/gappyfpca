@@ -133,21 +133,14 @@ def test_fpca_weights2():
                 [2, 3, 4, 5, 6],
                 [3, 4, 5, np.nan, np.nan]])
     
-    X = np.array([[1,2, 3, 4, 5],
-                [2, 3, 4, 5, 6],
-                [3, 4, 5, 6, 7]])
-
-    # Step 1: Center the data
-    X_centered = X - np.mean(X, axis=0)
-
     X_gap_cent=X_gap-np.nanmean(X_gap,axis=0)
 
-    # Step 2: Perform PCA
-    pca = PCA(n_components=3)
-    pca.fit(X_centered)
-
     # Step 3: Get the principal components (eigenvectors)
-    PCs = pca.components_.T
+    PCs = np.array([[ 4.47213595e-01,  8.94427191e-01, -4.29987528e-17],
+       [ 4.47213595e-01, -2.23606798e-01,  8.66025404e-01],
+       [ 4.47213595e-01, -2.23606798e-01, -2.88675135e-01],
+       [ 4.47213595e-01, -2.23606798e-01, -2.88675135e-01],
+       [ 4.47213595e-01, -2.23606798e-01, -2.88675135e-01]])
 
     try:
         weights=fpca_weights(X_gap_cent.T,PCs)
