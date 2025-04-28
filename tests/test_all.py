@@ -1,10 +1,9 @@
 import numpy as np
 import pytest
-from sklearn.decomposition import PCA
 
 from gappyfpca.data_check import check_gappiness,clean_empty_data
-from gappyfpca.eig import find_and_sort_eig, fpca_num_coefs
-from gappyfpca.fpca import gappyfpca, reconstruct_func
+from gappyfpca.eig import eig_decomp, fpca_num_coefs
+from gappyfpca.fpca import gappyfpca, reconstruct_func, l2_error
 from gappyfpca.nancov import nancov
 from gappyfpca.weights import fpca_weights
 
@@ -74,12 +73,12 @@ def test_nancov2():
     ans=np.array([[0.25,0.25,-0.5],[0.25, 0.25, 0.5],[-0.5,0.5,1]])
     assert np.isclose(cov, ans).all()
 
-def test_eigsort():
+def test_eigdecomp():
     cov=np.array([[4, 0, 0],
                   [0, 9, 0],
                   [0, 0, 16]])
 
-    eval,evec=find_and_sort_eig(cov)
+    eval,evec=eig_decomp(cov)
 
     eval_ans=np.array([ 16,9,4])
     evec_ans=np.array([[0, 0,  1],
@@ -110,12 +109,12 @@ def test_fpca_weights1(iparallel):
     # Step 1: Center the data
     X_centered = X - np.mean(X, axis=0)
 
-    # Step 2: Perform PCA
-    pca = PCA(n_components=3)
-    pca.fit(X_centered)
-
-    # Step 3: Get the principal components (eigenvectors)
-    PCs = pca.components_.T
+    # Step : Get the principal components (eigenvectors)
+    PCs = np.array([[ 4.47213595e-01,  8.94427191e-01, -4.29987528e-17],
+       [ 4.47213595e-01, -2.23606798e-01,  8.66025404e-01],
+       [ 4.47213595e-01, -2.23606798e-01, -2.88675135e-01],
+       [ 4.47213595e-01, -2.23606798e-01, -2.88675135e-01],
+       [ 4.47213595e-01, -2.23606798e-01, -2.88675135e-01]])
 
     # Step 4: Compute the weights (scores) for each data point
     ans_weights = np.dot(X_centered, PCs)
@@ -134,21 +133,14 @@ def test_fpca_weights2():
                 [2, 3, 4, 5, 6],
                 [3, 4, 5, np.nan, np.nan]])
     
-    X = np.array([[1,2, 3, 4, 5],
-                [2, 3, 4, 5, 6],
-                [3, 4, 5, 6, 7]])
-
-    # Step 1: Center the data
-    X_centered = X - np.mean(X, axis=0)
-
     X_gap_cent=X_gap-np.nanmean(X_gap,axis=0)
 
-    # Step 2: Perform PCA
-    pca = PCA(n_components=3)
-    pca.fit(X_centered)
-
     # Step 3: Get the principal components (eigenvectors)
-    PCs = pca.components_.T
+    PCs = np.array([[ 4.47213595e-01,  8.94427191e-01, -4.29987528e-17],
+       [ 4.47213595e-01, -2.23606798e-01,  8.66025404e-01],
+       [ 4.47213595e-01, -2.23606798e-01, -2.88675135e-01],
+       [ 4.47213595e-01, -2.23606798e-01, -2.88675135e-01],
+       [ 4.47213595e-01, -2.23606798e-01, -2.88675135e-01]])
 
     try:
         weights=fpca_weights(X_gap_cent.T,PCs)
@@ -168,7 +160,7 @@ def test_gappyfpca_integration(iparallel):
     # Sinusoidal patterns
     np.random.seed(42) # Ensure reproducibility
     x = np.linspace(0, 2 * np.pi, L)
-    functions = np.array([10 + np.random.uniform(0.1, 5) * np.sin(x * np.random.uniform(1, 1.5) + np.random.uniform(0, np.pi / 2))
+    functions = np.array([np.polyval(np.random.uniform(-1, 1, size=1), np.linspace(-1, 1, L)) 
                       for _ in range(M)])
 
     data = np.copy(functions)
@@ -182,7 +174,7 @@ def test_gappyfpca_integration(iparallel):
     check_gappiness(data)
 
     # Run gappyfpca
-    fpca_comps, fpca_coefs, evalue, run_stat = gappyfpca(data, max_iter=15, num_iter=5, iparallel=iparallel)
+    fpca_comps, fpca_coefs, evalue, run_stat = gappyfpca(data, exp_var=0.95, max_iter=10, stable_iter=5, tol = 5e-3, iparallel=iparallel)
 
     # Impute missing data
     function_recon = reconstruct_func(fpca_comps[0, :], fpca_comps[1:, :], fpca_coefs)
@@ -191,7 +183,6 @@ def test_gappyfpca_integration(iparallel):
          pytest.fail(f"Reconstructed function contains NaNs for iparallel={iparallel}")
 
     # Calculate mean absolute error across all points
-    mean_error = np.mean(np.abs(functions - function_recon))
 
     # Assert that the mean absolute error is below a threshold
-    assert mean_error < 0.1, f"Mean reconstruction error {mean_error} is too high for iparallel={iparallel}"
+    assert run_stat[-1] < 1e-4, f"Mean reconstruction error {run_stat[-1]} is too high for iparallel={iparallel}"

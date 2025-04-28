@@ -1,19 +1,35 @@
 [build-system]
-requires = ["setuptools"]  # the build tool to use
-build-backend = "setuptools.build_meta"  # the function to use to build the package
+requires = ["setuptools"] 
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "gappyfpca"
-description = "A simple package for PCA of gappy functions"
+description = "A simple package for PCA of gappy (incomplete) functions"
 version = "0.0.1"
-
-requires-python=">=3.0"
-dependencies = ["numpy~=1.26.0",
+readme = "README.md"
+authors = [
+  { name="Amy Hodgkin", email="ahodgkin@turing.ac.uk" }
+]
+license = { file = "LICENSE" }
+requires-python=">=3.8"
+dependencies = [
+            "numpy~=1.26.0",
             "scipy~=1.14.0",
             "notebook==7.2.2",
             "matplotlib==3.9.2",
-            "scikit-learn",
-            "pytest"]
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest"
+]
+
+[project.urls]
+Homepage = "https://github.com/amyhodgkin/gappyfpca"
+Repository = "https://github.com/amyhodgkin/gappyfpca"
+
+[tool.setuptools.packages.find]
+where = ["."]
 
 [tool.ruff]
 extend-exclude = ["*.ipynb", "tests/*"]

@@ -28,7 +28,8 @@ def check_gappiness(data: np.ndarray) -> None:
             "Please handle them before proceeding."
         )
 
-    print("Data is suitable for gappy fPCA method")
+    percent_missing = np.sum(np.isnan(data)) / (data.shape[0] * data.shape[1]) * 100
+    print(f"Data is suitable for gappy fPCA method with {percent_missing:.2f}% missing data.")
 
     return
 
