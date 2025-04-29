@@ -62,7 +62,7 @@ def process_weights(args: tuple[int, np.ndarray, np.ndarray, int]) -> np.ndarray
         fpca_comp_masked = fpca_comp[~mask]
         data_func_masked = data_func[~mask]
         result = minimize(sum_sq_error, init_weight, args=(data_func_masked, fpca_comp_masked), method="SLSQP")
-        fpca_weights[i] = result.x
+        fpca_weights[i] = result.x[0] if isinstance(result.x, np.ndarray) else result.x
         data_func = data_func - fpca_weights[i] * fpca_comp
     return fpca_weights
 
