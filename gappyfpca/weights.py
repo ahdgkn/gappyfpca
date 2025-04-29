@@ -54,11 +54,11 @@ def process_weights(args: tuple[int, np.ndarray, np.ndarray, int]) -> np.ndarray
     by minimizing the sum of squared errors.
     """
     j, data_func, PCs, n_coefs = args
-    init_weight = 0
+    init_weight = 0.0
     fpca_weights = np.zeros(n_coefs)
+    mask = np.isnan(data_func)
     for i in range(n_coefs):
         fpca_comp = PCs[:, i]
-        mask = np.isnan(data_func)
         fpca_comp_masked = fpca_comp[~mask]
         data_func_masked = data_func[~mask]
         result = minimize(sum_sq_error, init_weight, args=(data_func_masked, fpca_comp_masked), method="SLSQP")
