@@ -29,7 +29,7 @@ The package implements a fPCA algorithm with a pseudocovariance calculated with 
 		1. Like 'fpca_initial' but step 1 is replaced with np.cov
 	2. 'reconstruct_function'
 	3. 'check_convergence' - Compare L2 error of current function reconstruction with previous, check for stability
-	4. If reconstruction error is less than specified tolerance for X (stable_iter) number of iterations OR total number of iterations is maximum iterations, exit loop. Else repeeat 4.1-4.4
+	4. If reconstruction error is less than specified tolerance for X (stable_iter) number of iterations OR total number of iterations is maximum iterations, exit loop. Else repeat 4.1-4.4
 5. Return fPCA components, coefficients, eigenvalues and convergence stats
 
 INCLUDE WORKFLOW DIAGRAM HERE
