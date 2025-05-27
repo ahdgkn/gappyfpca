@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/dependencies-numpy%2C%20scipy%2C%20matplotlib-blue">
 </p>
 
-`gappyfpca` is a simple, `numpy` and `scipy` based, Python package for generating a PCA representation of gappy functional data. It uses a pseudocovariance matrix of the gappy data to compute a first approximation for the principal components and a SLSQP minimisation algorithim to project the gappy data onto these. Subsequent iterations find the covariance from the reconstructed data and repeat the minimisation step to update the coefficients with the gappy data. The minimisation step can be run in parallel to speed up computation of the coefficients.
+`gappyfpca` is a simple, `numpy` and `scipy` based, Python package for generating a PCA representation of gappy functional data. It uses a pseudocovariance matrix of the gappy data to compute a first approximation for the principal components and a SLSQP minimisation algorithm to project the gappy data onto these. Subsequent iterations find the covariance from the reconstructed data and repeat the minimisation step to update the coefficients with the gappy data. The minimisation step can be run in parallel to speed up computation of the coefficients.
 
 This package was developed to create a low-order representation of aircraft trajectories for generative modelling. If you use this package please cite the paper referenced below.
 
