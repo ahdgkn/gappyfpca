@@ -3,7 +3,7 @@ import pytest
 
 from gappyfpca.data_check import check_gappiness,clean_empty_data
 from gappyfpca.eig import eig_decomp, fpca_num_coefs
-from gappyfpca.fpca import reconstruct_func, l2_error
+from gappyfpca.fpca import reconstruct_func
 from gappyfpca.nancov import nancov
 from gappyfpca.weights import fpca_weights
 
