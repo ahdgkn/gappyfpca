@@ -32,46 +32,9 @@ The package implements a fPCA algorithm with a pseudocovariance calculated with 
 	4. If reconstruction error is less than specified tolerance for X (stable_iter) number of iterations OR total number of iterations is maximum iterations, exit loop. Else repeat 4.1-4.4
 5. Return fPCA components, coefficients, eigenvalues and convergence stats
 
-```mermaid
-%%{init: {'theme': 'default', 'flowchart': {'direction': 'LR'}}}%%
-graph TD
-    %% Main function
-    gappyfpca[gappyfpca]:::main
-
-    %% Initial fPCA steps (under gappyfpca)
-    subgraph fpca_init_group [fpca_initial]
-        nancov[nancov]:::initial
-        eig[eig_decomp]:::initial
-        num_coefs[fpca_num_coefs]:::initial
-        weights[fpca_weights]:::initial
-        return1[Return components and coefficients]:::initial
-    end
-
-    recon1[reconstruct_function]:::initial
-
-    %% Iterative Loop
-    subgraph iter_group [Iterative loop]
-        fpca_update[fpca_update]:::loop
-        recon2[reconstruct_function]:::loop
-        check_conv[check_convergence]:::loop
-    end
-
-    %% Output
-    exit[Return final results]:::main
-
-    %% Connections showing hierarchy
-    gappyfpca --> fpca_init_group --> recon1 --> iter_group
-    nancov --> eig --> num_coefs --> weights --> return1
-    iter_group --> fpca_update --> recon2 --> check_conv
-    check_conv -->|Converged| exit
-    check_conv -->|Repeat| fpca_update
-
-    %% Styles
-    classDef initial fill:#d4edda,stroke:#155724,color:#155724;
-    classDef loop fill:#d1ecf1,stroke:#0c5460,color:#0c5460;
-    classDef main fill:#f8d7da,stroke:#721c24,color:#721c24;
-
-```
+<p align="center">
+  <img src="gappyfpca_workflow.png" alt="gappyfpca workflow" width="500"/>
+</p>
 
 
 ## Installation
