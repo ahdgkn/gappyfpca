@@ -39,7 +39,7 @@ def nancov(A: np.ndarray) -> np.ndarray:
     # Avoid division by zero
 
     if np.any(N == 0):
-        raise ValueError("Some covariance entries have no valid data points. Check your data with data_gappiness function.")
+        raise ValueError("Some covariance entries have no valid data points. Check your data with check_gappiness function.")
 
     # Compute the weighted covariance matrix
     cov = cov_num / N

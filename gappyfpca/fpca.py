@@ -216,13 +216,6 @@ def gappyfpca(
         print("=" * 50)
         print("Gappy Functional PCA: Starting Analysis")
         print("=" * 50)
-        print("Checking data validity...")
-
-    check_gappiness(data)
-
-    if verbose:
-        print("-" * 30, "\n")
-        print("Starting fPCA computation...")
 
     fpca_comps, fpca_coefs = fpca_initial(data, iparallel)
     # reconstruct data fully for iterative steps
@@ -254,7 +247,7 @@ def gappyfpca(
         data_recon_test = reconstruct_func(fpca_comps[0, :], fpca_comps[1:, :], fpca_coefs, num_recon)
 
         # check if the reconstruction is stable on previous value with L2 norm
-        recon_change = l2_error(data_recon, data_recon_prev)
+        recon_change = l2_error(data_recon_test, data_recon_prev)
         data_dif.append(recon_change)
 
         if recon_change < tol:
@@ -279,6 +272,8 @@ def gappyfpca(
     if num_recon is not None:
         fpca_comps = fpca_comps[: num_recon + 1, :]
         fpca_coefs = fpca_coefs[:, :num_recon]
+    else:
+        num_recon = fpca_comps.shape[0] - 1
 
     if verbose:
         print("=" * 50)
