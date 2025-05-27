@@ -55,7 +55,7 @@ If you wish to run tests, you can install the dependencies required for these wi
  
 ## Getting Started
 
-A example notebook 'get_started.ipynb' is provided with details the use of the package through some simple synthetically generated data. Considerations when using the package are discussed within the notebook.
+An example notebook 'get_started.ipynb' is provided with details the use of the package through some simple synthetically generated data. Considerations when using the package are discussed within the notebook.
 
  ## Citation
 
