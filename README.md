@@ -17,7 +17,7 @@ This package was developed to create a low-order representation of aircraft traj
 The package implements a fPCA algorithm with a pseudocovariance calculated with gappy data to replace a covariance matrix for the first step. PCA weights are fitted with a optimisation function. Subsequent steps use reconstructed data to calculate the full covariance.
 
 1. Check suitability of data for method, clean data to remove 'too much' gappiness if needed
-2. 'fpca_initial' - Inital fPCA computation using gappy data
+2. 'fpca_initial' - Initial fPCA computation using gappy data
 	1. 'nancov' - compute psuedocovariance
 	2. 'eig_decomp' - returns sorted eigenvalue decomposition
 	3. 'fpca_num_coefs' - ensure only valid components are retained
